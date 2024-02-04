@@ -1,5 +1,5 @@
 <template>
-  <div class="dark:bg-green-500/10">
+  <main class="dark:bg-green-500/10">
     <TabGroup
       :selectedIndex="selectedTab"
       @change="(tab) => (selectedTab = tab)"
@@ -46,7 +46,15 @@
                 <div
                   class="pt-4 lg:p-8 flex md:grid md:grid-cols-2 flex-col gap-4"
                 >
-                  <template v-if="coursesStore.paginatedCourses.length !== 0">
+                  <template v-if="coursesStore.error === true">
+                    Fehler beim Laden. Versuche es später erneut.
+                  </template>
+                  <template v-else-if="coursesStore.loaded === false">
+                    Lade Kurse…
+                  </template>
+                  <template
+                    v-else-if="coursesStore.paginatedCourses.length !== 0"
+                  >
                     <CoursePreview
                       :course="course"
                       v-for="course in coursesStore.paginatedCourses"
@@ -80,11 +88,11 @@
         </div>
       </div>
     </TabGroup>
-  </div>
+  </main>
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useOffsetPagination } from '@vueuse/core';
 import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
 import { useCoursesStore } from './store/courses.ts';
@@ -115,22 +123,22 @@ const pagination = computed(() =>
   }),
 );
 
-const filterUpdate = () => {
-  pagination.value.currentPage.value = 1;
+const updatePagination = () =>
   updatePaginatedCourses({
     currentPage: pagination.value.currentPage.value,
     currentPageSize: pagination.value.currentPageSize.value,
   });
+
+const filterUpdate = () => {
+  pagination.value.currentPage.value = 1;
+  updatePagination();
 };
 
 const selectedTab = ref(0);
 
-onMounted(() => {
-  updatePaginatedCourses({
-    currentPage: pagination.value.currentPage.value,
-    currentPageSize: pagination.value.currentPageSize.value,
-  });
+watch(coursesStore, () => updatePagination(), { once: true });
 
+onMounted(() => {
   window.addEventListener('resize', () => {
     if (window.innerWidth > 1024) selectedTab.value = 0;
   });

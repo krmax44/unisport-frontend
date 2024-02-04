@@ -104,7 +104,6 @@ const updateMarkers = () => {
         previewCourse.value = course;
         await nextTick();
         await new Promise((r) => window.requestAnimationFrame(r));
-        console.log(preview.value, preview.value!.innerHTML);
 
         const popup = new Popup({ closeButton: false })
           .setLngLat([slot.location!.lon, slot.location!.lat])
