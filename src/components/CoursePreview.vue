@@ -1,36 +1,63 @@
 <template>
-  <article
-    class="p-4 rounded shadow border border-gray-300"
-    @mouseover="coursesStore.$patch({ highlightedCourse: course })"
-    @mouseout="coursesStore.$patch({ highlightedCourse: undefined })"
-  >
-    <span class="text-gray-800 dark:text-gray-300">{{ course.provider }}</span>
-    <h3 class="text-lg font-semibold">{{ course.name }}</h3>
+  <a href="#!" class="group">
+    <article
+      class="p-4 rounded shadow border border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
+      @mouseover="coursesStore.setHighlightedCourse(course)"
+      @mouseout="coursesStore.setHighlightedCourse(undefined)"
+    >
+      <h3 class="text-lg font-semibold">{{ course.name }}</h3>
+      <dl class="flex gap-4">
+        <dt>Anbieter*in</dt>
+        <dd>
+          <i-material-symbols-school-outline-rounded class="mr-1" />
+          {{ course.provider }}
+        </dd>
 
-    <ul class="flex flex-wrap gap-2">
-      <li
-        v-for="slot in slots"
-        :key="slot.id"
-        class="p-2 rounded-md flex flex-col items-center content-center"
-        :class="[slot.bookable ? 'bg-green-300/50' : 'bg-red-300/50']"
-        :aria-label="`${slot.time?.day}, von ${slot.time?.start} bis ${slot.time?.end}`"
-      >
-        <span class="uppercase text-sm font-bold">
-          {{ slot.time?.day }}
-        </span>
-        <span>
-          {{ timeToStr(slot.time!.start) }}
-          –
-          {{ timeToStr(slot.time!.end) }}
-        </span>
-      </li>
-    </ul>
-  </article>
+        <template v-if="priceRange !== undefined">
+          <dt>Preis</dt>
+          <dd>
+            <i-material-symbols-euro-rounded class="mr-1" />
+            {{ priceRange[0] }}
+            <template v-if="priceRange[0] !== priceRange[1]">
+              –
+              {{ priceRange[1] }}
+            </template>
+          </dd>
+        </template>
+      </dl>
+
+      <ul class="flex gap-2 pt-2 overflow-auto md:flex-wrap snap-x">
+        <li
+          v-for="slot in slots"
+          :key="slot.id"
+          class="p-2 rounded-md flex flex-col items-center content-center snap-start"
+          :class="[slot.bookable ? 'bg-green-300/50' : 'bg-red-300/50']"
+          :aria-label="`${slot.time?.day}, von ${slot.time?.start} bis ${slot.time?.end}`"
+        >
+          <span class="uppercase text-sm font-bold">
+            {{ slot.time?.day ?? slot.dayStr }}
+          </span>
+          <span v-if="slot.time?.start !== undefined">
+            {{ timeToStr(slot.time.start) }}
+            <template
+              v-if="slot.time.end !== undefined && !isNaN(slot.time.end)"
+            >
+              –
+              {{ timeToStr(slot.time.end) }}
+            </template>
+          </span>
+          <span v-else>
+            {{ slot.timeStr }}
+          </span>
+        </li>
+      </ul>
+    </article>
+  </a>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Course, useCoursesStore, Day } from '../store/courses.ts';
+import { Course, useCoursesStore } from '../store/courses.ts';
 import { timeToStr } from '../utils';
 const coursesStore = useCoursesStore();
 
@@ -39,10 +66,28 @@ const props = defineProps<{
 }>();
 
 const slots = computed(() => {
-  const s = props.course.slots.filter((s) => s.time !== undefined);
+  const slots = props.course.slots.filter(
+    (s) => s.dayStr !== '' && s.timeStr !== '',
+  );
   if (coursesStore.filters.onlyBookable) {
-    return s.filter((s) => s.bookable);
+    return slots.filter((s) => s.bookable);
   }
-  return s;
+  return slots;
 });
+
+const priceRange = computed(() => coursesStore.getPriceRange(props.course));
 </script>
+
+<style scoped>
+dt {
+  @apply sr-only;
+}
+
+dd {
+  @apply text-gray-700 dark:text-gray-300 flex items-center;
+}
+
+span {
+  @apply whitespace-nowrap inline-block;
+}
+</style>

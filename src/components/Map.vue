@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full h-full" aria-hidden="true">
     <div
-      class="absolute w-full h-full rounded-xl overflow-hidden"
+      class="absolute w-full h-full rounded-t-xl md:rounded-xl overflow-hidden"
       ref="mapContainer"
     ></div>
   </div>
@@ -14,7 +14,8 @@ import {
   NavigationControl,
   Marker,
   LngLatBounds,
-  LngLatBoundsLike,
+  LngLatLike,
+  FullscreenControl,
 } from 'maplibre-gl';
 import { usePreferredDark, useDebounceFn } from '@vueuse/core';
 import { useCoursesStore, CourseSlot } from '../store/courses.ts';
@@ -22,86 +23,87 @@ import { useCoursesStore, CourseSlot } from '../store/courses.ts';
 const isDark = usePreferredDark();
 
 const mapContainer = shallowRef(null);
-const map = shallowRef(null);
+const map = shallowRef(null as MaplibreMap | null);
 const markers = new Map<string, Marker>();
 
 const duration = 700; // default map animation duration
 
 const coursesStore = useCoursesStore();
-coursesStore.$onAction(({ name }) => {
-  if (name === 'filter') {
-    updateMarkers();
-  }
-});
 
-let preHighlightCenter;
-let preHighlightZoom;
+let preHighlightCenter: LngLatLike | undefined;
+let preHighlightZoom: number | undefined;
 
-const applyHighlight = useDebounceFn((bounds: LngLatBounds | undefined) => {
-  if (bounds === undefined) {
-    map.value?.flyTo({
-      center: preHighlightCenter,
-      zoom: preHighlightZoom,
-      duration,
-    });
-
-    preHighlightCenter = undefined;
-  } else {
-    if (preHighlightCenter === undefined) {
-      preHighlightCenter = map.value?.getCenter();
-      preHighlightZoom = map.value?.getZoom();
-    }
-
-    map.value?.fitBounds(bounds, { duration, zoom: 15 });
-  }
-}, duration);
-
-coursesStore.$subscribe((_mutation, { highlightedCourse }) => {
-  if (highlightedCourse !== undefined) {
-    const { slots } = highlightedCourse;
+const updateHighlightedCourse = useDebounceFn(() => {
+  markers.forEach((m) => m.setOpacity('1'));
+  if (coursesStore.highlightedCourse !== undefined) {
+    const { slots } = coursesStore.highlightedCourse;
     const slotIds = slots.map((s) => s.id);
 
     if (slotIds.some((s) => markers.has(s))) {
-      markers.forEach((m, id) => !slotIds.includes(id) && m.setOpacity(0));
+      markers.forEach((m, id) => !slotIds.includes(id) && m.setOpacity('0'));
 
       const bounds = slotsToBounds(slots);
       if (bounds !== undefined) {
-        applyHighlight(bounds);
+        if (preHighlightCenter === undefined) {
+          preHighlightCenter = map.value?.getCenter();
+          preHighlightZoom = map.value?.getZoom();
+        }
+
+        map.value?.fitBounds(bounds, { duration, zoom: 15 });
       }
 
       return;
     }
   }
 
-  markers.forEach((m) => m.setOpacity(1));
-  applyHighlight();
-});
+  if (preHighlightCenter !== undefined) {
+    map.value?.flyTo({
+      center: preHighlightCenter,
+      zoom: preHighlightZoom,
+      duration,
+    });
+  }
+}, duration);
 
-function updateMarkers() {
+const updateMarkers = () => {
   for (const [id, marker] of markers.entries()) {
-    if (coursesStore.filteredCourses.find((c) => c.id === id) === undefined) {
+    if (coursesStore.paginatedCourses.find((c) => c.id === id) === undefined) {
       marker.remove();
       markers.delete(id);
     }
   }
 
-  for (const course of coursesStore.filteredCourses) {
+  for (const course of coursesStore.paginatedCourses) {
     for (const slot of course.slots) {
       if (markers.has(slot.id)) continue;
       if (slot.location === undefined) continue;
 
-      const marker = new Marker({ color: '#FF0000', cluster: true })
+      const marker = new Marker({ color: '#FF0000' })
         .setLngLat([slot.location.lon, slot.location.lat])
-        .addTo(map.value);
+        .addTo(map.value!);
 
-      marker.getElement().addEventListener('click', () => {
+      const markerEl = marker.getElement();
+
+      markerEl.addEventListener('click', () => {
         console.log('click');
       });
+
+      markerEl.setAttribute('title', course.name);
 
       markers.set(slot.id, marker);
     }
   }
-}
+};
+
+const updateMarkersDebounced = useDebounceFn(updateMarkers, duration);
+
+coursesStore.$onAction(({ name }) => {
+  if (name === 'paginateCourses') {
+    updateMarkersDebounced();
+  } else if (name === 'setHighlightedCourse') {
+    updateHighlightedCourse();
+  }
+});
 
 function slotsToBounds(slots: CourseSlot[]): LngLatBounds | undefined {
   const coords = slots
@@ -123,7 +125,7 @@ function slotsToBounds(slots: CourseSlot[]): LngLatBounds | undefined {
 onMounted(() => {
   map.value = markRaw(
     new MaplibreMap({
-      container: mapContainer.value,
+      container: mapContainer.value!,
       style: `https://api.maptiler.com/maps/streets-v2${isDark.value ? '-dark' : ''}/style.json?key=${import.meta.env.VITE_MAPBOX_API_KEY}`,
       center: [13.405, 52.52],
       zoom: 10,
@@ -131,6 +133,7 @@ onMounted(() => {
   );
 
   map.value?.addControl(new NavigationControl(), 'top-right');
+  map.value?.addControl(new FullscreenControl(), 'top-right');
 
   updateMarkers();
 });

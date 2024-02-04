@@ -8,10 +8,11 @@
   },
   "dependencies": {
     "@fontsource-variable/assistant": "^5.0.16",
-    "@iconify-json/mdi": "^1.1.64",
+    "@iconify-json/material-symbols": "^1.1.72",
     "@tailwindcss/forms": "^0.5.7",
     "@vue-leaflet/vue-leaflet": "^0.10.1",
     "@vueuse/core": "^10.7.2",
+    "fuse.js": "^7.0.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "maplibre-gl": "^4.0.0",

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import Fuse from 'fuse.js';
 
 import { data as rawCourses } from './courses.json';
 import { data as locations } from './locations.json';
@@ -56,64 +57,90 @@ enum Provider {
   'zeh2.zeh.hu-berlin.de' = 'HU Berlin',
 }
 
-const courses: Course[] = rawCourses.map((course: any): Course => {
-  const { description, name, url } = course;
+async function createShortHash(message: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return [...new Uint8Array(hash)]
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .slice(0, 4)
+    .join('');
+}
 
-  const slots = course.courses
-    .filter((s: any) => s.name !== null)
-    .map((slot: any): CourseSlot => {
-      let location: Location | undefined;
+const courses: Course[] = await Promise.all(
+  rawCourses.map(async (course: any): Promise<Course> => {
+    const { description, name, url } = course;
 
-      const l = locations.find((location: any) => location.name === slot.place);
-      if (l !== undefined) {
-        location = {
-          ...l,
-          aliases: [],
+    const slots = course.courses
+      .filter((s: any) => s.name !== null)
+      .map((slot: any): CourseSlot => {
+        let location: Location | undefined;
+
+        const l = locations.find(
+          (location: any) => location.name === slot.place,
+        );
+        if (l !== undefined) {
+          location = {
+            ...l,
+            aliases: [],
+          };
+        }
+
+        const prices = [];
+        const priceRegex = /.*?([\d,\.]+)/;
+        let m;
+        while (
+          (m = priceRegex.exec(slot.price)) !== null &&
+          prices.length < 4
+        ) {
+          prices.push(parseFloat(m[1].replace(',', '.')));
+        }
+
+        const bookable = slot.bookable === 'buchen';
+
+        let time;
+        if (
+          slot.day !== null &&
+          slot.time !== null &&
+          slot.time.includes('-')
+        ) {
+          const [start, end] = slot.time.split('-').map(strToTime);
+          time = {
+            day: slot.day,
+            start,
+            end,
+          };
+        }
+
+        return {
+          id: crypto.randomUUID(),
+          name: slot.name,
+          prices,
+          location,
+          bookable,
+          time,
+          timeStr: slot.time,
+          dayStr: slot.day,
         };
-      }
+      });
 
-      const prices = [];
-      const priceRegex = /.*?([\d,\.]+)/;
-      let m;
-      while ((m = priceRegex.exec(slot.price)) !== null && prices.length < 4) {
-        prices.push(parseFloat(m[1].replace(',', '.')));
-      }
+    const host = new URL(url).hostname;
+    const provider = Provider[host as keyof typeof Provider];
 
-      const bookable = slot.bookable === 'buchen';
+    return {
+      id: await createShortHash(url),
+      description,
+      name,
+      url,
+      provider,
+      slots,
+    };
+  }),
+);
 
-      let time;
-      if (slot.day !== null && slot.time !== null && slot.time.includes('-')) {
-        const [start, end] = slot.time.split('-').map(strToTime);
-        time = {
-          day: slot.day,
-          start,
-          end,
-        };
-      }
-
-      return {
-        id: crypto.randomUUID(),
-        name: slot.name,
-        prices,
-        location,
-        bookable,
-        time,
-        timeStr: slot.time,
-        dayStr: slot.day,
-      };
-    });
-
-  const host = new URL(url).hostname;
-  const provider = Provider[host as keyof typeof Provider];
-
-  return {
-    id: crypto.randomUUID(),
-    description,
-    name,
-    url,
-    provider,
-    slots,
-  };
+const fuse = new Fuse(courses, {
+  keys: ['name', 'description'],
+  threshold: 0.3,
 });
 
 export const useCoursesStore = defineStore('courses', {
@@ -123,14 +150,43 @@ export const useCoursesStore = defineStore('courses', {
     filters: {
       onlyBookable: true,
       timeSlots: [] as TimeSlot[],
+      searchTerm: '',
     },
+    paginatedCourses: [] as Course[],
   }),
   actions: {
     filter() {},
+    paginateCourses(from: number, to: number) {
+      this.paginatedCourses = this.filteredCourses.slice(from, to);
+    },
+    setHighlightedCourse(course: Course | undefined) {
+      this.highlightedCourse = course;
+    },
+    getPriceRange(course: Course): [number, number] | undefined {
+      const prices = course.slots
+        .map((slot) => slot.prices[0]) // only use student prices for now
+        .filter((p) => p !== undefined);
+
+      return prices.length !== 0
+        ? [Math.min(...prices), Math.max(...prices)]
+        : undefined;
+    },
   },
   getters: {
     filteredCourses(): Course[] {
-      return this.courses.slice(0, 50);
+      let { courses } = this;
+
+      if (this.filters.searchTerm.length > 2) {
+        courses = fuse.search(this.filters.searchTerm).map((r) => r.item);
+      }
+
+      if (this.filters.onlyBookable) {
+        courses = courses.filter((course) =>
+          course.slots.some((slot) => slot.bookable),
+        );
+      }
+
+      return courses;
     },
   },
 });
