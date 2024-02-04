@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import Fuse from 'fuse.js';
 
-import { isInSlot, strToTime } from '../utils';
+import { slotFitsFilter, strToTime } from '../utils';
 
 type BookingStatus = 'bookable' | 'waitlist';
 export interface CourseSlot {
@@ -83,6 +83,14 @@ async function createShortHash(message: string): Promise<string> {
     .join('');
 }
 
+export interface Filters {
+  bookable: BookingStatus[];
+  day: Day | 'all';
+  start: string;
+  end: string;
+  searchTerm: string;
+}
+
 export const useCoursesStore = defineStore('courses', {
   state: () => ({
     loaded: false,
@@ -90,10 +98,12 @@ export const useCoursesStore = defineStore('courses', {
     courses: [] as Course[],
     highlightedCourse: undefined as Course | undefined,
     filters: {
-      bookable: ['bookable'] as BookingStatus[],
-      timeSlot: undefined as TimeSlot | undefined,
+      bookable: ['bookable'],
+      day: 'all',
+      start: '',
+      end: '',
       searchTerm: '',
-    },
+    } as Filters,
     paginatedCourses: [] as Course[],
     fuse: undefined as Fuse<Course> | undefined,
   }),
@@ -251,22 +261,15 @@ export const useCoursesStore = defineStore('courses', {
       }
 
       const filterByBookable = this.filters.bookable.length !== 0;
-      const filterByTimeSlot = this.filters.timeSlot !== undefined;
+      const filterByTime =
+        this.filters.day !== 'all' ||
+        this.filters.start !== '' ||
+        this.filters.end !== '';
 
-      if (!filterByBookable && !filterByTimeSlot) return courses;
+      if (!filterByBookable && !filterByTime) return courses;
 
       return courses.filter((course) =>
-        course.slots.some((slot) => {
-          const b =
-            !filterByBookable ||
-            (slot.bookable !== undefined &&
-              this.filters.bookable.includes(slot.bookable));
-          const t =
-            !filterByTimeSlot ||
-            (slot.time && isInSlot(slot, this.filters.timeSlot!));
-
-          return b && t;
-        }),
+        course.slots.some((slot) => slotFitsFilter(slot, this.filters)),
       );
     },
   },

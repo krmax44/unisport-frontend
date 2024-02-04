@@ -29,7 +29,7 @@
       </select>
 
       <div class="flex flex-col md:flex-row gap-2 col-span-2">
-        <select v-model="timeSlotFilter.day">
+        <select v-model="filters.day">
           <option value="all">Alle Tage</option>
           <option
             v-for="[id, day] in Object.entries(DAYS)"
@@ -41,11 +41,11 @@
         </select>
         <label class="time-label">
           von:
-          <input type="time" v-model="timeSlotFilter.start" />
+          <input type="time" v-model="filters.start" />
         </label>
         <label class="time-label">
           bis:
-          <input type="time" v-model="timeSlotFilter.end" />
+          <input type="time" v-model="filters.end" />
         </label>
       </div>
     </div>
@@ -59,8 +59,7 @@ import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { refDebounced } from '@vueuse/core';
 
-import { useCoursesStore, DAYS, Day } from '../store/courses.ts';
-import { strToTime } from '../utils';
+import { useCoursesStore, DAYS } from '../store/courses.ts';
 
 const emit = defineEmits<{
   (e: 'update'): void;
@@ -80,34 +79,6 @@ watch(bookableFilter, (bookableFilter) => {
 
   emit('update');
 });
-
-const timeSlotFilter = ref({
-  day: 'all',
-  start: '',
-  end: '',
-});
-watch(
-  timeSlotFilter,
-  (timeSlotFilter) => {
-    if (
-      timeSlotFilter.day === 'all' ||
-      !timeSlotFilter.start ||
-      !timeSlotFilter.end
-    ) {
-      coursesStore.$patch({ filters: { timeSlot: undefined } });
-    } else {
-      const timeSlot = {
-        day: timeSlotFilter.day as Day,
-        start: strToTime(timeSlotFilter.start),
-        end: strToTime(timeSlotFilter.end),
-      };
-
-      coursesStore.$patch({ filters: { timeSlot } });
-    }
-    emit('update');
-  },
-  { deep: true },
-);
 
 watch(coursesStore.filters, () => emit('update'));
 </script>

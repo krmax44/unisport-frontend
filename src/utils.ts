@@ -1,4 +1,4 @@
-import { CourseSlot, TimeSlot } from './store/courses';
+import { CourseSlot, Filters, TimeSlot } from './store/courses';
 
 export function strToTime(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -11,18 +11,23 @@ export function timeToStr(time: number): string {
   return `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}`;
 }
 
-export function isInSlot(slot: CourseSlot, timeSlot: TimeSlot) {
-  if (slot.time === undefined) {
-    return false;
-  }
+export function slotFitsFilter(slot: CourseSlot, filters: Filters): boolean {
+  const bookable =
+    filters.bookable.length === 0 ||
+    (slot.bookable !== undefined && filters.bookable.includes(slot.bookable));
 
-  const { day, start, end } = slot.time;
-  const { day: filterDay, start: filterStart, end: filterEnd } = timeSlot!;
+  const day = filters.day === 'all' || slot.time?.day === filters.day;
 
-  return (
-    day === filterDay &&
-    start >= filterStart &&
-    end <= filterEnd &&
-    start <= filterEnd
-  );
+  const start =
+    filters.start === '' ||
+    (slot.time?.start !== undefined &&
+      slot.time!.start >= strToTime(filters.start));
+
+  const end =
+    filters.end === '' ||
+    (slot.time?.end !== undefined &&
+      slot.time!.end <= strToTime(filters.end) &&
+      slot.time!.start <= strToTime(filters.end));
+
+  return bookable && day && start && end;
 }

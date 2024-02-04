@@ -67,27 +67,21 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { Course, useCoursesStore, DAYS } from '../store/courses.ts';
-import { isInSlot, timeToStr } from '../utils';
+import { slotFitsFilter, timeToStr } from '../utils';
 const coursesStore = useCoursesStore();
 
 const props = defineProps<{
   course: Course;
 }>();
 
-const slots = computed(() => {
-  let slots = props.course.slots.filter(
-    (s) => s.dayStr !== '' && s.timeStr !== '',
-  );
-  if (coursesStore.filters.bookable) {
-    slots = slots.filter(
-      (s) => s.bookable && coursesStore.filters.bookable.includes(s.bookable),
-    );
-  }
-  if (coursesStore.filters.timeSlot) {
-    slots = slots.filter((s) => isInSlot(s, coursesStore.filters.timeSlot!));
-  }
-  return slots;
-});
+const slots = computed(() =>
+  props.course.slots.filter(
+    (s) =>
+      s.dayStr !== '' &&
+      s.timeStr !== '' &&
+      slotFitsFilter(s, coursesStore.filters),
+  ),
+);
 
 const priceRange = computed(() => coursesStore.getPriceRange(props.course));
 </script>
