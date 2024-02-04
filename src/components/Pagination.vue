@@ -6,7 +6,7 @@
       <i-material-symbols-arrow-left-alt-rounded />
       Zurück
     </a>
-    <TransitionGroup tag="ol" name="list" class="flex space-x-2">
+    <TransitionGroup tag="ol" name="list" class="hidden md:flex space-x-2">
       <li v-for="item in pages" :key="item">
         <a
           href="#!"
@@ -21,6 +21,7 @@
         </a>
       </li>
     </TransitionGroup>
+    <span class="md:hidden"> Seite {{ currentPage }} von {{ pageCount }} </span>
     <a href="#!" @click.prevent="$emit('next')">
       Weiter
       <i-material-symbols-arrow-right-alt-rounded />
@@ -45,31 +46,28 @@ defineEmits<{
 }>();
 
 const pages = computed(() => {
-  const i = props.currentPage;
-  const n = props.pageCount;
-  const padding = 2;
-  let start = Math.max(1, i - padding);
-  let end = Math.min(n, i + padding);
+  const range = 2; // Number of visible pages before and after the current page
+  let start = Math.max(1, props.currentPage - range);
+  let end = Math.min(props.pageCount, props.currentPage + range);
 
-  const result = [];
-
-  while (result.length < 3) {
-    if (i <= start) {
-      result.push(start++);
-    } else if (i >= end) {
-      result.unshift(end--);
-    } else {
-      result.push(i - 1, i, i + 1);
-    }
+  if (props.currentPage <= range) {
+    end = Math.min(props.pageCount, start + 2 * range);
+  } else if (props.currentPage >= props.pageCount - range) {
+    start = Math.max(1, end - 2 * range);
   }
 
-  return result;
+  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
 });
 </script>
 
 <style scoped>
+a,
+span {
+  @apply items-center gap-x-1 py-2 border-t-2 border-transparent text-gray-500 dark:text-gray-300;
+}
+
 a {
-  @apply inline-flex items-center gap-x-1 py-2 border-t-2 border-transparent hover:border-green-500 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 no-underline transition;
+  @apply inline-flex hover:border-green-500 hover:text-gray-700 dark:hover:text-gray-100 no-underline transition;
 }
 
 a.active {

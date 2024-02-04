@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full h-full" aria-hidden="true">
     <div
-      class="absolute w-full h-full rounded-t-xl md:rounded-xl overflow-hidden"
+      class="absolute w-full h-full rounded-b-xl md:rounded-xl lg:shadow overflow-hidden"
       ref="mapContainer"
     ></div>
   </div>

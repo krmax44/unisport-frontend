@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto">
+  <div class="dark:bg-green-500/10">
     <TabGroup
       :selectedIndex="selectedTab"
       @change="(tab) => (selectedTab = tab)"
@@ -7,7 +7,7 @@
       <div class="flex flex-col lg:flex-row relative h-screen">
         <div class="lg:w-2/3 lg:p-8 h-full">
           <div
-            class="flex flex-col bg-white dark:bg-black px-4 lg:px-8 rounded-xl h-full overflow-auto"
+            class="flex flex-col bg-white dark:bg-black px-4 lg:px-8 lg:shadow rounded-xl h-full overflow-auto"
           >
             <Filter
               class="pb-8 lg:p-8 lg:pt-12 lg:sticky top-0"
@@ -41,7 +41,7 @@
               </TabList>
             </div>
 
-            <TabPanels class="mt-2 flex-1">
+            <TabPanels class="flex-1">
               <TabPanel>
                 <div
                   class="pt-4 lg:p-8 flex md:grid md:grid-cols-2 flex-col gap-4"
