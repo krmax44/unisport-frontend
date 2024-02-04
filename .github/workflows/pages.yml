@@ -37,6 +37,8 @@ jobs:
         run: pnpm install
       - name: Build site
         run: pnpm run build --base "/unisport-frontend/"
+        env:
+          VITE_MAPTILER_API_KEY: ${{ secrets.MAPTILER_API_KEY }}
       - name: Archive artifact
         shell: bash
         run: |

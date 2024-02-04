@@ -151,7 +151,7 @@ onMounted(() => {
   map.value = markRaw(
     new MaplibreMap({
       container: mapContainer.value!,
-      style: `https://api.maptiler.com/maps/streets-v2${isDark.value ? '-dark' : ''}/style.json?key=${import.meta.env.VITE_MAPBOX_API_KEY}`,
+      style: `https://api.maptiler.com/maps/streets-v2${isDark.value ? '-dark' : ''}/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`,
       center: [13.405, 52.52],
       zoom: 10,
     }),
