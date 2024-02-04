@@ -5,10 +5,21 @@
       ref="mapContainer"
     ></div>
   </div>
+
+  <div class="hidden" ref="preview">
+    <CoursePreview :course="previewCourse" v-if="previewCourse" />
+  </div>
 </template>
 
 <script lang="ts" setup>
-import { shallowRef, onMounted, onUnmounted, markRaw } from 'vue';
+import {
+  shallowRef,
+  onMounted,
+  onUnmounted,
+  markRaw,
+  ref,
+  nextTick,
+} from 'vue';
 import {
   Map as MaplibreMap,
   NavigationControl,
@@ -16,9 +27,11 @@ import {
   LngLatBounds,
   LngLatLike,
   FullscreenControl,
+  Popup,
 } from 'maplibre-gl';
 import { usePreferredDark, useDebounceFn } from '@vueuse/core';
-import { useCoursesStore, CourseSlot } from '../store/courses.ts';
+import { useCoursesStore, CourseSlot, Course } from '../store/courses.ts';
+import CoursePreview from './CoursePreview.vue';
 
 const isDark = usePreferredDark();
 
@@ -29,6 +42,9 @@ const markers = new Map<string, Marker>();
 const duration = 700; // default map animation duration
 
 const coursesStore = useCoursesStore();
+
+const preview = ref(undefined as HTMLTemplateElement | undefined);
+const previewCourse = ref(undefined as Course | undefined);
 
 let preHighlightCenter: LngLatLike | undefined;
 let preHighlightZoom: number | undefined;
@@ -84,8 +100,18 @@ const updateMarkers = () => {
 
       const markerEl = marker.getElement();
 
-      markerEl.addEventListener('click', () => {
-        console.log('click');
+      markerEl.addEventListener('click', async () => {
+        previewCourse.value = course;
+        await nextTick();
+        await new Promise((r) => window.requestAnimationFrame(r));
+        console.log(preview.value, preview.value!.innerHTML);
+
+        const popup = new Popup({ closeButton: false })
+          .setLngLat([slot.location!.lon, slot.location!.lat])
+          .setHTML(preview.value!.innerHTML)
+
+          .addTo(map.value!)
+          .on('close', () => popup.remove());
       });
 
       markerEl.setAttribute('title', course.name);
@@ -148,5 +174,17 @@ onUnmounted(() => {
 
 .maplibregl-marker {
   cursor: pointer;
+}
+
+.maplibregl-popup-content {
+  @apply dark:bg-black font-sans text-base p-0;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  @apply dark:border-b-black;
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  @apply dark:border-t-black;
 }
 </style>

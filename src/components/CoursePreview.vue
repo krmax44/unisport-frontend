@@ -1,5 +1,5 @@
 <template>
-  <a href="#!" class="group">
+  <a :href="course.url" target="_blank" class="group" rel="noopener norefferer">
     <article
       class="p-4 rounded shadow border border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
       @mouseover="coursesStore.setHighlightedCourse(course)"
