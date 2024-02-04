@@ -44,12 +44,27 @@ defineEmits<{
   (e: 'to', page: number): void;
 }>();
 
-const pages = computed(() =>
-  new Array(props.pageCount)
-    .fill(undefined)
-    .map((_, i) => i + 1)
-    .filter((i) => Math.abs(props.currentPage - i) <= 2),
-);
+const pages = computed(() => {
+  const i = props.currentPage;
+  const n = props.pageCount;
+  const padding = 2;
+  let start = Math.max(1, i - padding);
+  let end = Math.min(n, i + padding);
+
+  const result = [];
+
+  while (result.length < 3) {
+    if (i <= start) {
+      result.push(start++);
+    } else if (i >= end) {
+      result.unshift(end--);
+    } else {
+      result.push(i - 1, i, i + 1);
+    }
+  }
+
+  return result;
+});
 </script>
 
 <style scoped>

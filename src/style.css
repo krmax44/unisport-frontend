@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
+
+body {
+  scrollbar-color: theme('colors.gray.500') theme('colors.white');
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    scrollbar-color: theme('colors.gray.500') theme('colors.gray.900');
+  }
+}
+
+button {
+  @apply flex items-center justify-center px-2 py-2 transition-colors focus:outline-none focus:ring focus:ring-opacity-25 focus:ring-green-500 hover:bg-gray-200 dark:hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-800 disabled:hover:text-gray-900;
+}
+
 @tailwind utilities;

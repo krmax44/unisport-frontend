@@ -8,6 +8,9 @@ dependencies:
   '@fontsource-variable/assistant':
     specifier: ^5.0.16
     version: 5.0.16
+  '@headlessui/vue':
+    specifier: ^1.7.18
+    version: 1.7.18(vue@3.4.15)
   '@iconify-json/material-symbols':
     specifier: ^1.1.72
     version: 1.1.72
@@ -332,6 +335,16 @@ packages:
     resolution: {integrity: sha512-vmsAZiroLcpjH0Y4tvxIEDtbU8GpZ2sR+JE5IaUmZ7CJEsqTl0UteMRiwskyS5lDQHegbeWPFqra8VLa78o8yQ==}
     dev: false
 
+  /@headlessui/vue@1.7.18(vue@3.4.15):
+    resolution: {integrity: sha512-N9EUJY0sHhuJQ81oQlk+vmB80NwUXsyJjxOaBrzUyO+VHIZz7v/ffFICAlrtM4TxZaZFMCzehe74yEPSqkEJ9g==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      '@tanstack/vue-virtual': 3.0.4(vue@3.4.15)
+      vue: 3.4.15(typescript@5.3.3)
+    dev: false
+
   /@iconify-json/material-symbols@1.1.72:
     resolution: {integrity: sha512-5IRqdI4HSbdatHBn6NZG+O9M1pJA39IrUhoBD824dXkKKE/3OmS2aU16w1hAhnr7n/euBqclkXAeUG3rDs0l1A==}
     dependencies:
@@ -593,6 +606,19 @@ packages:
     dependencies:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.1
+    dev: false
+
+  /@tanstack/virtual-core@3.0.0:
+    resolution: {integrity: sha512-SYXOBTjJb05rXa2vl55TTwO40A6wKu0R5i1qQwhJYNDIqaIGF7D0HsLw+pJAyi2OvntlEIVusx3xtbbgSUi6zg==}
+    dev: false
+
+  /@tanstack/vue-virtual@3.0.4(vue@3.4.15):
+    resolution: {integrity: sha512-SDk3n+dMZnAXEAx+HZ0wQwBN00Ne7Qk4z29QnawJy6jzOOpoajt7Mm6gIEERin1D4ALxW5WpuDqhlnV2TNFQ+A==}
+    peerDependencies:
+      vue: ^2.7.0 || ^3.0.0
+    dependencies:
+      '@tanstack/virtual-core': 3.0.0
+      vue: 3.4.15(typescript@5.3.3)
     dev: false
 
   /@types/estree@1.0.5:

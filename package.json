@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@fontsource-variable/assistant": "^5.0.16",
+    "@headlessui/vue": "^1.7.18",
     "@iconify-json/material-symbols": "^1.1.72",
     "@tailwindcss/forms": "^0.5.7",
     "@vue-leaflet/vue-leaflet": "^0.10.1",

@@ -31,8 +31,11 @@
           v-for="slot in slots"
           :key="slot.id"
           class="p-2 rounded-md flex flex-col items-center content-center snap-start"
-          :class="[slot.bookable ? 'bg-green-300/50' : 'bg-red-300/50']"
-          :aria-label="`${slot.time?.day}, von ${slot.time?.start} bis ${slot.time?.end}`"
+          :class="[
+            slot.bookable === 'bookable' && 'bg-green-300/50',
+            slot.bookable === 'waitlist' && 'bg-red-300/50',
+          ]"
+          :aria-label="`${slot.time?.day ? DAYS[slot.time?.day] : slot.dayStr}, um ${slot.time?.start ? timeToStr(slot.time.start) : slot.timeStr} Uhr${slot.time?.end && ' bis ' + timeToStr(slot.time?.end) + ' Uhr'}`"
         >
           <span class="uppercase text-sm font-bold">
             {{ slot.time?.day ?? slot.dayStr }}
@@ -57,8 +60,8 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Course, useCoursesStore } from '../store/courses.ts';
-import { timeToStr } from '../utils';
+import { Course, useCoursesStore, DAYS } from '../store/courses.ts';
+import { isInSlot, timeToStr } from '../utils';
 const coursesStore = useCoursesStore();
 
 const props = defineProps<{
@@ -66,11 +69,16 @@ const props = defineProps<{
 }>();
 
 const slots = computed(() => {
-  const slots = props.course.slots.filter(
+  let slots = props.course.slots.filter(
     (s) => s.dayStr !== '' && s.timeStr !== '',
   );
-  if (coursesStore.filters.onlyBookable) {
-    return slots.filter((s) => s.bookable);
+  if (coursesStore.filters.bookable) {
+    slots = slots.filter(
+      (s) => s.bookable && coursesStore.filters.bookable.includes(s.bookable),
+    );
+  }
+  if (coursesStore.filters.timeSlot) {
+    slots = slots.filter((s) => isInSlot(s, coursesStore.filters.timeSlot!));
   }
   return slots;
 });

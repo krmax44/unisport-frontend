@@ -3,7 +3,7 @@ import Fuse from 'fuse.js';
 
 import { data as rawCourses } from './courses.json';
 import { data as locations } from './locations.json';
-import { strToTime } from '../utils';
+import { isInSlot, strToTime } from '../utils';
 
 type BookingStatus = 'bookable' | 'waitlist';
 export interface CourseSlot {
@@ -34,15 +34,17 @@ export interface Location {
   aliases: string[];
 }
 
-export enum Day {
-  Monday = 'Mo',
-  Tuesday = 'Di',
-  Wednesday = 'We',
-  Thursday = 'Do',
-  Friday = 'Fr',
-  Saturday = 'Sa',
-  Sunday = 'So',
-}
+export const DAYS = {
+  Mo: 'Montag',
+  Di: 'Dienstag',
+  Mi: 'Mittwoch',
+  Do: 'Donnerstag',
+  Fr: 'Freitag',
+  Sa: 'Samstag',
+  So: 'Sonntag',
+};
+export type Day = keyof typeof DAYS;
+
 export interface TimeSlot {
   day: Day;
   start: number;
@@ -166,8 +168,8 @@ export const useCoursesStore = defineStore('courses', {
     courses,
     highlightedCourse: undefined as Course | undefined,
     filters: {
-      bookable: 'bookable' as BookingStatus | 'all',
-      timeSlots: [] as TimeSlot[],
+      bookable: ['bookable'] as BookingStatus[],
+      timeSlot: undefined as TimeSlot | undefined,
       searchTerm: '',
     },
     paginatedCourses: [] as Course[],
@@ -198,13 +200,24 @@ export const useCoursesStore = defineStore('courses', {
         courses = fuse.search(this.filters.searchTerm).map((r) => r.item);
       }
 
-      if (this.filters.bookable !== 'all') {
-        courses = courses.filter((course) =>
-          course.slots.some((slot) => this.filters.bookable === slot.bookable),
-        );
-      }
+      const filterByBookable = this.filters.bookable.length !== 0;
+      const filterByTimeSlot = this.filters.timeSlot !== undefined;
 
-      return courses;
+      if (!filterByBookable && !filterByTimeSlot) return courses;
+
+      return courses.filter((course) =>
+        course.slots.some((slot) => {
+          const b =
+            !filterByBookable ||
+            (slot.bookable !== undefined &&
+              this.filters.bookable.includes(slot.bookable));
+          const t =
+            !filterByTimeSlot ||
+            (slot.time && isInSlot(slot, this.filters.timeSlot!));
+          console.log(filterByBookable, filterByTimeSlot, b, t);
+          return b && t;
+        }),
+      );
     },
   },
 });
