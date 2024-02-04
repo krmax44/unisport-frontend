@@ -5,11 +5,12 @@ import { data as rawCourses } from './courses.json';
 import { data as locations } from './locations.json';
 import { strToTime } from '../utils';
 
+type BookingStatus = 'bookable' | 'waitlist';
 export interface CourseSlot {
   id: string;
   prices: number[];
   location: Location | undefined;
-  bookable: boolean;
+  bookable: BookingStatus | undefined;
   name: string;
   time: TimeSlot | undefined;
   dayStr: string;
@@ -57,6 +58,21 @@ enum Provider {
   'zeh2.zeh.hu-berlin.de' = 'HU Berlin',
 }
 
+const bookingFilter = {
+  bookable: [
+    'buchen',
+    'nur über Büro',
+    'Karte kaufen',
+    'anmeldefrei',
+    'buchen 🔒',
+    'Basisangebot',
+    'siehe Text',
+    'Kursdaten',
+    'ohne Anmeldung',
+  ],
+  waitlist: ['Warteliste', 'Warteliste 🔒'],
+} as Record<BookingStatus, string[]>;
+
 async function createShortHash(message: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(message);
@@ -96,7 +112,9 @@ const courses: Course[] = await Promise.all(
           prices.push(parseFloat(m[1].replace(',', '.')));
         }
 
-        const bookable = slot.bookable === 'buchen';
+        const bookable = Object.entries(bookingFilter).find(([_, values]) =>
+          values.includes(slot.bookable),
+        )?.[0] as BookingStatus | undefined;
 
         let time;
         if (
@@ -148,7 +166,7 @@ export const useCoursesStore = defineStore('courses', {
     courses,
     highlightedCourse: undefined as Course | undefined,
     filters: {
-      onlyBookable: true,
+      bookable: 'bookable' as BookingStatus | 'all',
       timeSlots: [] as TimeSlot[],
       searchTerm: '',
     },
@@ -180,9 +198,9 @@ export const useCoursesStore = defineStore('courses', {
         courses = fuse.search(this.filters.searchTerm).map((r) => r.item);
       }
 
-      if (this.filters.onlyBookable) {
+      if (this.filters.bookable !== 'all') {
         courses = courses.filter((course) =>
-          course.slots.some((slot) => slot.bookable),
+          course.slots.some((slot) => this.filters.bookable === slot.bookable),
         );
       }
 

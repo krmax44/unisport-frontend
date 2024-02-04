@@ -23,10 +23,11 @@
         placeholder="Suchbegriff (Basketball, Yoga…)"
       />
 
-      <label>
-        <input type="checkbox" v-model="filters.onlyBookable" />
-        <span class="ml-2">Nur buchbare Kurse</span>
-      </label>
+      <select v-model="filters.bookable">
+        <option value="bookable">nur buchbare Kurse</option>
+        <option value="waitlist">buchbare Kurse und mit Warteliste</option>
+        <option value="all">alle Kurse (auch nicht buchbare)</option>
+      </select>
     </div>
   </form>
 </template>
@@ -47,13 +48,17 @@ const filtersDebounced = refDebounced(filters, 500);
 watch(coursesStore.filters, () => emit('update'));
 </script>
 
-<style>
+<style scoped>
 input[type='text'] {
-  @apply mt-1 block w-full rounded-md bg-gray-100 dark:bg-gray-900 border-transparent focus:border-gray-500 focus:bg-white focus:dark:bg-black focus:ring-0;
+  @apply block w-full rounded-md bg-gray-100 dark:bg-gray-900 border-transparent focus:border-gray-500 focus:bg-white focus:dark:bg-black focus:ring-0;
 }
 
 input[type='checkbox'] {
   @apply rounded bg-gray-200 border-transparent focus:border-transparent focus:bg-gray-200 text-green-600 focus:ring-1 focus:ring-offset-2 focus:ring-gray-500;
+}
+
+select {
+  @apply block w-full rounded-md bg-gray-100 dark:bg-gray-900 border-transparent focus:border-gray-500 focus:bg-white dark:focus:bg-black focus:ring-0;
 }
 
 label {
