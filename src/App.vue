@@ -84,3 +84,15 @@ onMounted(() =>
   }),
 );
 </script>
+
+<style>
+body {
+  scrollbar-color: theme('colors.gray.500') theme('colors.white');
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    scrollbar-color: theme('colors.gray.500') theme('colors.gray.900');
+  }
+}
+</style>
