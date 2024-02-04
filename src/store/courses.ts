@@ -54,7 +54,7 @@ enum Provider {
   'sport.htw-berlin.de' = 'HTW Berlin',
   'www.buchsys.de' = 'FU Berlin',
   'www.tu-sport.de' = 'TU Berlin',
-  'zeh02.beuth-hochschule.de' = 'BTH Berlin',
+  'zeh02.beuth-hochschule.de' = 'BHT Berlin',
   'zeh2.zeh.hu-berlin.de' = 'HU Berlin',
 }
 
