@@ -5,7 +5,7 @@
     <TabList class="flex space-x-1 border-b border-green-300">
       <Tab as="template" v-slot="{ selected }">
         <button
-          class="rounded-t-md w-full"
+          class="rounded-none rounded-t-md w-full"
           :class="{
             'bg-green-50 dark:bg-green-900/50 text-green-800 dark:text-green-300':
               selected,
@@ -16,7 +16,7 @@
       </Tab>
       <Tab as="template" v-slot="{ selected }">
         <button
-          class="rounded-t-md w-full"
+          class="rounded-none rounded-t-md w-full"
           :class="{
             'bg-green-50 dark:bg-green-900/50 text-green-800 dark:text-green-300':
               selected,

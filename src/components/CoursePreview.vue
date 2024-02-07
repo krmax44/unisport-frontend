@@ -1,10 +1,9 @@
 <template>
   <a
-    :href="course.url"
-    target="_blank"
+    href="#!"
     class="block group focus:outline-none focus:ring focus:ring-green-500 transition-all rounded shadow border"
-    rel="noopener norefferer"
-    title="Kursseite öffnen…"
+    title="Details zum Kurs…"
+    @click.prevent="coursesStore.selectedCourse = course"
   >
     <article
       class="p-4 border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
@@ -12,17 +11,17 @@
       @mouseout="coursesStore.setHighlightedCourse(undefined)"
     >
       <h3 class="text-lg font-semibold">{{ course.name }}</h3>
-      <dl class="flex gap-4">
+      <dl>
         <dt>Anbieter*in</dt>
         <dd>
-          <i-material-symbols-school-outline-rounded class="mr-1" />
+          <i-material-symbols-school-outline-rounded />
           {{ course.provider }}
         </dd>
 
         <template v-if="priceRange !== undefined">
           <dt>Preis</dt>
           <dd>
-            <i-material-symbols-euro-rounded class="mr-1" />
+            <i-material-symbols-euro-rounded />
             {{ priceRange[0] }}
             <template v-if="priceRange[0] !== priceRange[1]">
               –
@@ -46,18 +45,8 @@
           <span class="uppercase text-sm font-bold">
             {{ slot.time?.day ?? slot.dayStr }}
           </span>
-          <span v-if="slot.time?.start !== undefined">
-            {{ timeToStr(slot.time.start) }}
-            <template
-              v-if="slot.time.end !== undefined && !isNaN(slot.time.end)"
-            >
-              –
-              {{ timeToStr(slot.time.end) }}
-            </template>
-          </span>
-          <span v-else>
-            {{ slot.timeStr }}
-          </span>
+
+          <SlotTime :slot="slot" />
         </li>
       </ul>
     </article>
@@ -68,6 +57,8 @@
 import { computed } from 'vue';
 import { Course, useCoursesStore, DAYS } from '../store/courses.ts';
 import { slotFitsFilter, timeToStr } from '../utils';
+import SlotTime from './SlotTime.vue';
+
 const coursesStore = useCoursesStore();
 
 const props = defineProps<{
@@ -75,26 +66,20 @@ const props = defineProps<{
 }>();
 
 const slots = computed(() =>
-  props.course.slots.filter(
-    (s) =>
-      s.dayStr !== '' &&
-      s.timeStr !== '' &&
-      slotFitsFilter(s, coursesStore.filters),
-  ),
+  props.course.slots
+    .filter(
+      (s) =>
+        s.dayStr !== '' &&
+        s.timeStr !== '' &&
+        slotFitsFilter(s, coursesStore.filters),
+    )
+    .sort((s) => (s.bookable === 'bookable' ? -1 : 1)),
 );
 
 const priceRange = computed(() => coursesStore.getPriceRange(props.course));
 </script>
 
 <style scoped>
-dt {
-  @apply sr-only;
-}
-
-dd {
-  @apply text-gray-700 dark:text-gray-300 flex items-center;
-}
-
 span {
   @apply whitespace-nowrap inline-block;
 }

@@ -131,7 +131,6 @@ export const useCoursesStore = defineStore('courses', {
 
           courseData = courses;
           locationData = locations;
-          console.log('Loaded from cache');
         } catch (e) {
           const [_courses, _locations] = await Promise.all(
             [
@@ -279,7 +278,6 @@ export const useCoursesStore = defineStore('courses', {
       );
     },
     pagination(): UseOffsetPaginationReturn {
-      console.log('pagination object updated!');
       return useOffsetPagination({
         total: this.filteredCourses.length,
         page: 1,

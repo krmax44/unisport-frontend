@@ -42,17 +42,20 @@ import { storeToRefs } from 'pinia';
 
 const isDark = usePreferredDark();
 
+const coursesStore = useCoursesStore();
+const { paginatedCourses, highlightedCourse, selectedCourse } =
+  storeToRefs(coursesStore);
+
 const mapContainer = shallowRef(null);
 const map = shallowRef(null as MaplibreMap | null);
 const markers = new Map<string, Marker>();
 
 const popupOpen = ref(false);
-const shouldZoomIn = computed(() => !popupOpen.value);
+const shouldZoomIn = computed(
+  () => !popupOpen.value && selectedCourse.value === undefined,
+);
 
 const duration = 700; // default map animation duration
-
-const coursesStore = useCoursesStore();
-const { paginatedCourses, highlightedCourse } = storeToRefs(coursesStore);
 
 const preview = ref(undefined as HTMLTemplateElement | undefined);
 const previewCourse = ref(undefined as Course | undefined);

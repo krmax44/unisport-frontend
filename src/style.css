@@ -3,6 +3,12 @@
 
 body {
   scrollbar-color: theme('colors.gray.500') theme('colors.white');
+  @apply bg-gray-100;
+}
+
+body,
+.prose {
+  @apply text-black dark:bg-black dark:text-white;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -11,8 +17,30 @@ body {
   }
 }
 
-button {
-  @apply flex items-center justify-center px-2 py-2 transition-colors focus:outline-none focus:ring focus:ring-opacity-25 focus:ring-green-500 hover:bg-gray-200 dark:hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-800 disabled:hover:text-gray-900;
+button,
+a.btn {
+  @apply flex items-center justify-center px-6 py-2 rounded-full transition-colors text-green-700 dark:text-green-400 focus:outline-none focus:ring focus:ring-opacity-25 focus:ring-green-500 hover:bg-gray-200 dark:hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-800 disabled:hover:text-gray-900;
+}
+
+button.btn-primary,
+a.btn-primary {
+  @apply bg-green-100 dark:bg-green-900 hover:bg-green-200;
+}
+
+dl {
+  @apply flex flex-wrap gap-x-4 gap-y-2;
+}
+
+dt {
+  @apply sr-only;
+}
+
+dd {
+  @apply text-gray-700 dark:text-gray-300 flex items-center;
+}
+
+dd svg {
+  @apply mr-1;
 }
 
 @tailwind utilities;

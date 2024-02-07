@@ -4,11 +4,19 @@
       :selectedIndex="selectedTab"
       @change="(tab) => (selectedTab = tab)"
     >
-      <div class="flex flex-col lg:flex-row relative h-screen">
+      <div class="flex flex-col lg:flex-row h-screen">
         <div class="lg:w-2/3 lg:p-8 h-full">
-          <Panel>
-            <CourseOverview />
-          </Panel>
+          <div class="relative h-full overflow-hidden">
+            <Panel
+              class="h-full transition-transform duration-500 origin-center"
+              :class="{
+                'scale-90': coursesStore.selectedCourse,
+              }"
+            >
+              <CourseOverview />
+            </Panel>
+            <CourseDetails />
+          </div>
         </div>
 
         <div class="hidden lg:block lg:w-1/3">
@@ -22,7 +30,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import { defineAsyncComponent, onMounted, ref } from 'vue';
 import { TabGroup } from '@headlessui/vue';
 import { useCoursesStore } from './store/courses.ts';
 import Panel from './components/Panel.vue';
@@ -32,6 +40,10 @@ import CourseOverview from './components/CourseOverview.vue';
 const coursesStore = useCoursesStore();
 
 const selectedTab = ref(0);
+
+const CourseDetails = defineAsyncComponent(
+  () => import('./components/CourseDetails.vue'),
+);
 
 onMounted(() => {
   window.addEventListener('resize', () => {
