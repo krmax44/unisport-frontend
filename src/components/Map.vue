@@ -7,7 +7,11 @@
   </div>
 
   <div class="hidden" ref="preview">
-    <CoursePreview :course="previewCourse" v-if="previewCourse" />
+    <CoursePreview
+      :course="previewCourse"
+      v-if="previewCourse"
+      class="max-w-72 w-[80vw]"
+    />
   </div>
 </template>
 
@@ -19,6 +23,8 @@ import {
   markRaw,
   ref,
   nextTick,
+  watch,
+  computed,
 } from 'vue';
 import {
   Map as MaplibreMap,
@@ -32,6 +38,7 @@ import {
 import { usePreferredDark, useDebounceFn } from '@vueuse/core';
 import { useCoursesStore, CourseSlot, Course } from '../store/courses.ts';
 import CoursePreview from './CoursePreview.vue';
+import { storeToRefs } from 'pinia';
 
 const isDark = usePreferredDark();
 
@@ -39,9 +46,13 @@ const mapContainer = shallowRef(null);
 const map = shallowRef(null as MaplibreMap | null);
 const markers = new Map<string, Marker>();
 
+const popupOpen = ref(false);
+const shouldZoomIn = computed(() => !popupOpen.value);
+
 const duration = 700; // default map animation duration
 
 const coursesStore = useCoursesStore();
+const { paginatedCourses, highlightedCourse } = storeToRefs(coursesStore);
 
 const preview = ref(undefined as HTMLTemplateElement | undefined);
 const previewCourse = ref(undefined as Course | undefined);
@@ -51,7 +62,7 @@ let preHighlightZoom: number | undefined;
 
 const updateHighlightedCourse = useDebounceFn(() => {
   markers.forEach((m) => m.setOpacity('1'));
-  if (coursesStore.highlightedCourse !== undefined) {
+  if (coursesStore.highlightedCourse !== undefined && shouldZoomIn.value) {
     const { slots } = coursesStore.highlightedCourse;
     const slotIds = slots.map((s) => s.id);
 
@@ -108,9 +119,14 @@ const updateMarkers = () => {
         const popup = new Popup({ closeButton: false })
           .setLngLat([slot.location!.lon, slot.location!.lat])
           .setHTML(preview.value!.innerHTML)
-
+          .setMaxWidth('none')
           .addTo(map.value!)
-          .on('close', () => popup.remove());
+          .on('close', () => {
+            popupOpen.value = false;
+            popup.remove();
+          });
+
+        popupOpen.value = true;
       });
 
       markerEl.setAttribute('title', course.name);
@@ -152,8 +168,8 @@ onMounted(() => {
     }),
   );
 
-  map.value?.addControl(new NavigationControl(), 'top-right');
-  map.value?.addControl(new FullscreenControl(), 'top-right');
+  map.value.addControl(new NavigationControl(), 'top-right');
+  map.value.addControl(new FullscreenControl(), 'top-right');
 
   updateMarkers();
 });
