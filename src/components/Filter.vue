@@ -61,10 +61,6 @@ import { refDebounced } from '@vueuse/core';
 
 import { useCoursesStore, DAYS } from '../store/courses.ts';
 
-const emit = defineEmits<{
-  (e: 'update'): void;
-}>();
-
 const coursesStore = useCoursesStore();
 const { filters } = storeToRefs(coursesStore);
 const filtersDebounced = refDebounced(filters, 500);
@@ -76,11 +72,7 @@ watch(bookableFilter, (bookableFilter) => {
   else if (bookableFilter === 'bookable')
     coursesStore.$patch({ filters: { bookable: ['bookable', 'waitlist'] } });
   else coursesStore.$patch({ filters: { bookable: [] } });
-
-  emit('update');
 });
-
-watch(coursesStore.filters, () => emit('update'));
 </script>
 
 <style scoped>

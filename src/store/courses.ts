@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import Fuse from 'fuse.js';
+import { UseOffsetPaginationReturn, useOffsetPagination } from '@vueuse/core';
 
 import { slotFitsFilter, strToTime } from '../utils';
 
@@ -104,7 +105,6 @@ export const useCoursesStore = defineStore('courses', {
       end: '',
       searchTerm: '',
     } as Filters,
-    paginatedCourses: [] as Course[],
     fuse: undefined as Fuse<Course> | undefined,
   }),
   actions: {
@@ -233,10 +233,6 @@ export const useCoursesStore = defineStore('courses', {
         threshold: 0.3,
       });
     },
-    filter() {},
-    paginateCourses(from: number, to: number) {
-      this.paginatedCourses = this.filteredCourses.slice(from, to);
-    },
     setHighlightedCourse(course: Course | undefined) {
       this.highlightedCourse = course;
     },
@@ -270,6 +266,22 @@ export const useCoursesStore = defineStore('courses', {
 
       return courses.filter((course) =>
         course.slots.some((slot) => slotFitsFilter(slot, this.filters)),
+      );
+    },
+    pagination(): UseOffsetPaginationReturn {
+      console.log('pagination object updated!');
+      return useOffsetPagination({
+        total: this.filteredCourses.length,
+        page: 1,
+        pageSize: 50,
+      });
+    },
+    paginatedCourses(): Course[] {
+      const { currentPage, currentPageSize } = this.pagination;
+
+      return this.filteredCourses.slice(
+        currentPage.value,
+        currentPage.value + currentPageSize.value,
       );
     },
   },

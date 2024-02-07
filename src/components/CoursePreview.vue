@@ -2,12 +2,12 @@
   <a
     :href="course.url"
     target="_blank"
-    class="group"
+    class="block group focus:outline-none focus:ring focus:ring-green-500 transition-all rounded shadow border"
     rel="noopener norefferer"
     title="Kursseite öffnen…"
   >
     <article
-      class="p-4 rounded shadow border border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
+      class="p-4 border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
       @mouseover="coursesStore.setHighlightedCourse(course)"
       @mouseout="coursesStore.setHighlightedCourse(undefined)"
     >

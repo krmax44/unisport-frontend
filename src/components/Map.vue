@@ -122,13 +122,8 @@ const updateMarkers = () => {
 
 const updateMarkersDebounced = useDebounceFn(updateMarkers, duration);
 
-coursesStore.$onAction(({ name }) => {
-  if (name === 'paginateCourses') {
-    updateMarkersDebounced();
-  } else if (name === 'setHighlightedCourse') {
-    updateHighlightedCourse();
-  }
-});
+watch(highlightedCourse, () => updateHighlightedCourse());
+watch(paginatedCourses, () => updateMarkersDebounced());
 
 function slotsToBounds(slots: CourseSlot[]): LngLatBounds | undefined {
   const coords = slots
