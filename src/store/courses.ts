@@ -14,6 +14,7 @@ export interface CourseSlot {
   time: TimeSlot | undefined;
   dayStr: string;
   timeStr: string;
+  date: string;
 }
 
 export interface Course {
@@ -96,8 +97,15 @@ export const useCoursesStore = defineStore('courses', {
   state: () => ({
     loaded: false,
     error: false,
-    courses: [] as Course[],
+
+    courses: [] as Course[], // all courses
+
+    // moused-over course
     highlightedCourse: undefined as Course | undefined,
+
+    // course selected for detail view
+    selectedCourse: undefined as Course | undefined,
+
     filters: {
       bookable: ['bookable'],
       day: 'all',
@@ -105,6 +113,7 @@ export const useCoursesStore = defineStore('courses', {
       end: '',
       searchTerm: '',
     } as Filters,
+
     fuse: undefined as Fuse<Course> | undefined,
   }),
   actions: {
@@ -195,6 +204,7 @@ export const useCoursesStore = defineStore('courses', {
                   time,
                   timeStr: slot.time,
                   dayStr: slot.day,
+                  date: slot.timeframe,
                 };
               });
 
