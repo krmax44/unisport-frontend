@@ -76,7 +76,7 @@
             <h3 class="mb-2">Termine</h3>
             <ul class="flex flex-col md:grid grid-cols-2 gap-2">
               <li
-                v-for="slot in course.slots.sort((s) =>
+                v-for="slot in [...course.slots].sort((s) =>
                   s.bookable === 'bookable' ? -1 : 1,
                 )"
                 :key="slot.id"
@@ -172,10 +172,7 @@ const renderer = new Renderer();
 renderer.em = (text) => '*' + text + '*'; // remove emphasis, since it interferes with gender*
 
 const description = computed(() => {
-  return (
-    course.value &&
-    DOMPurify.sanitize(parse(course.value.description, { renderer }))
-  );
+  return 'foo';
 });
 
 const descriptionEl = ref(undefined as HTMLDivElement | undefined);

@@ -66,7 +66,7 @@ const props = defineProps<{
 }>();
 
 const slots = computed(() =>
-  props.course.slots
+  [...props.course.slots]
     .filter(
       (s) =>
         s.dayStr !== '' &&
