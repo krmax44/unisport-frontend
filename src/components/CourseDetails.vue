@@ -172,7 +172,9 @@ const renderer = new Renderer();
 renderer.em = (text) => '*' + text + '*'; // remove emphasis, since it interferes with gender*
 
 const description = computed(() => {
-  return 'foo';
+  return DOMPurify.sanitize(
+    parse(course.value?.description ?? '', { renderer }) as string,
+  );
 });
 
 const descriptionEl = ref(undefined as HTMLDivElement | undefined);
