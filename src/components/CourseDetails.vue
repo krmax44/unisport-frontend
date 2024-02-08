@@ -161,11 +161,11 @@ import { computed, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { parse, Renderer } from 'marked';
 import DOMPurify from 'dompurify';
-import { useCoursesStore } from '../store/courses';
+import { useCourseStore } from '../store/courses';
 import Panel from './Panel.vue';
 import SlotTime from './SlotTime.vue';
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 const { selectedCourse: course } = storeToRefs(coursesStore);
 
 const renderer = new Renderer();

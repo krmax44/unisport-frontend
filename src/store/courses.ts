@@ -93,7 +93,7 @@ export interface Filters {
   searchTerm: string;
 }
 
-export const useCoursesStore = defineStore('courses', {
+export const useCourseStore = defineStore('courses', {
   state: () => ({
     loaded: false,
     error: false,

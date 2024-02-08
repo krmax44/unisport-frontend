@@ -59,9 +59,9 @@ import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { refDebounced } from '@vueuse/core';
 
-import { useCoursesStore, DAYS } from '../store/courses.ts';
+import { useCourseStore, DAYS } from '../store/courses.ts';
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 const { filters } = storeToRefs(coursesStore);
 const filtersDebounced = refDebounced(filters, 500);
 

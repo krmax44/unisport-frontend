@@ -32,12 +32,12 @@
 <script lang="ts" setup>
 import { defineAsyncComponent, onMounted, ref } from 'vue';
 import { TabGroup } from '@headlessui/vue';
-import { useCoursesStore } from './store/courses.ts';
+import { useCourseStore } from './store/courses.ts';
 import Panel from './components/Panel.vue';
 import Map from './components/Map.vue';
 import CourseOverview from './components/CourseOverview.vue';
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 
 const selectedTab = ref(0);
 

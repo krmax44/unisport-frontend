@@ -66,13 +66,13 @@
 
 <script lang="ts" setup>
 import { TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
-import { useCoursesStore } from '../store/courses.ts';
+import { useCourseStore } from '../store/courses.ts';
 import Filter from './Filter.vue';
 import Map from './Map.vue';
 import CoursePreview from './CoursePreview.vue';
 import Pagination from './Pagination.vue';
 import { storeToRefs } from 'pinia';
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 const { pagination } = storeToRefs(coursesStore);
 </script>

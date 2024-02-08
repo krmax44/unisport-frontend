@@ -4,7 +4,7 @@ import App from './App.vue';
 
 import '@fontsource-variable/assistant/index.css';
 import './style.css';
-import { useCoursesStore } from './store/courses.ts';
+import { useCourseStore } from './store/courses.ts';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -12,5 +12,5 @@ const pinia = createPinia();
 app.use(pinia);
 app.mount('#app');
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 coursesStore.loadCourses();

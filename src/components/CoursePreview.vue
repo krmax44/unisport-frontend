@@ -55,11 +55,11 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Course, useCoursesStore, DAYS } from '../store/courses.ts';
+import { Course, useCourseStore, DAYS } from '../store/courses.ts';
 import { slotFitsFilter, timeToStr } from '../utils';
 import SlotTime from './SlotTime.vue';
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 
 const props = defineProps<{
   course: Course;

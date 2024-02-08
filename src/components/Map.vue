@@ -36,13 +36,13 @@ import {
   Popup,
 } from 'maplibre-gl';
 import { usePreferredDark, useDebounceFn } from '@vueuse/core';
-import { useCoursesStore, CourseSlot, Course } from '../store/courses.ts';
+import { useCourseStore, CourseSlot, Course } from '../store/courses.ts';
 import CoursePreview from './CoursePreview.vue';
 import { storeToRefs } from 'pinia';
 
 const isDark = usePreferredDark();
 
-const coursesStore = useCoursesStore();
+const coursesStore = useCourseStore();
 const { paginatedCourses, highlightedCourse, selectedCourse } =
   storeToRefs(coursesStore);
 
