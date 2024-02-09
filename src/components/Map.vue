@@ -4,19 +4,19 @@
       class="absolute w-full h-full rounded-b-xl md:rounded-xl lg:shadow overflow-hidden"
       ref="mapContainer"
     ></div>
-  </div>
 
-  <div class="hidden" ref="preview">
-    <div
-      class="flex flex-col divide-y divide-gray-200 dark:divide-gray-600 max-h-48 max-w-72 w-[80vw] overflow-y-auto"
-    >
-      <CoursePreview
-        :course="course"
-        v-for="course in previewCourses"
-        :key="course.id"
-        class="w-full"
-        :data-course="course.id"
-      />
+    <div class="hidden" ref="preview">
+      <div
+        class="flex flex-col divide-y divide-gray-200 dark:divide-gray-600 max-h-48 max-w-72 w-[80vw] overflow-y-auto"
+      >
+        <CoursePreview
+          :course="course"
+          v-for="course in previewCourses"
+          :key="course.id"
+          class="w-full"
+          :data-course="course.id"
+        />
+      </div>
     </div>
   </div>
 </template>
