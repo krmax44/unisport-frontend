@@ -32,7 +32,7 @@
 <script lang="ts" setup>
 import { defineAsyncComponent, onMounted, ref } from 'vue';
 import { TabGroup } from '@headlessui/vue';
-import { useCourseStore } from './store/courses.ts';
+import { useCourseStore } from './store/courses/index.ts';
 import Panel from './components/Panel.vue';
 import Map from './components/Map.vue';
 import CourseOverview from './components/CourseOverview.vue';

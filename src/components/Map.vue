@@ -7,11 +7,17 @@
   </div>
 
   <div class="hidden" ref="preview">
-    <CoursePreview
-      :course="previewCourse"
-      v-if="previewCourse"
-      class="max-w-72 w-[80vw]"
-    />
+    <div
+      class="flex flex-col divide-y divide-gray-200 dark:divide-gray-600 max-h-48 max-w-72 w-[80vw] overflow-y-auto"
+    >
+      <CoursePreview
+        :course="course"
+        v-for="course in previewCourses"
+        :key="course.id"
+        class="w-full"
+        :data-course="course.id"
+      />
+    </div>
   </div>
 </template>
 
@@ -36,15 +42,16 @@ import {
   Popup,
 } from 'maplibre-gl';
 import { usePreferredDark, useDebounceFn } from '@vueuse/core';
-import { useCourseStore, CourseSlot, Course } from '../store/courses.ts';
+import { useCourseStore, CourseSlot, Course } from '../store/courses/index.ts';
 import CoursePreview from './CoursePreview.vue';
 import { storeToRefs } from 'pinia';
 
 const isDark = usePreferredDark();
 
 const coursesStore = useCourseStore();
-const { paginatedCourses, highlightedCourse, selectedCourse } =
+const { matchingCourseEvents, highlightedCourse, selectedCourse } =
   storeToRefs(coursesStore);
+const locationKeys = computed(() => Object.keys(matchingCourseEvents.value));
 
 const mapContainer = shallowRef(null);
 const map = shallowRef(null as MaplibreMap | null);
@@ -58,7 +65,7 @@ const shouldZoomIn = computed(
 const duration = 700; // default map animation duration
 
 const preview = ref(undefined as HTMLTemplateElement | undefined);
-const previewCourse = ref(undefined as Course | undefined);
+const previewCourses = ref([] as Course[]);
 
 let preHighlightCenter: LngLatLike | undefined;
 let preHighlightZoom: number | undefined;
@@ -97,52 +104,71 @@ const updateHighlightedCourse = useDebounceFn(() => {
 
 const updateMarkers = () => {
   for (const [id, marker] of markers.entries()) {
-    if (coursesStore.paginatedCourses.find((c) => c.id === id) === undefined) {
+    if (!locationKeys.value.includes(id)) {
       marker.remove();
       markers.delete(id);
     }
   }
 
-  for (const course of coursesStore.paginatedCourses) {
-    for (const slot of course.slots) {
-      if (markers.has(slot.id)) continue;
-      if (slot.location === undefined) continue;
+  for (const events of Object.values(matchingCourseEvents.value)) {
+    if (events.length === 0) continue;
+    const { location } = events[0];
+    const courses = [...new Set(events.map((e) => e.course))];
 
-      const marker = new Marker({ color: '#FF0000' })
-        .setLngLat([slot.location.lon, slot.location.lat])
-        .addTo(map.value!);
+    if (markers.has(location.url)) continue;
 
-      const markerEl = marker.getElement();
+    const marker = new Marker({ color: '#FF0000' })
+      .setLngLat([location.lon, location.lat])
+      .addTo(map.value!);
 
-      markerEl.addEventListener('click', async () => {
-        previewCourse.value = course;
-        await nextTick();
-        await new Promise((r) => window.requestAnimationFrame(r));
+    const markerEl = marker.getElement();
 
-        const popup = new Popup({ closeButton: false })
-          .setLngLat([slot.location!.lon, slot.location!.lat])
-          .setHTML(preview.value!.innerHTML)
-          .setMaxWidth('none')
-          .addTo(map.value!)
-          .on('close', () => {
-            popupOpen.value = false;
+    markerEl.addEventListener('click', async () => {
+      previewCourses.value = courses;
+      await nextTick();
+      await new Promise((r) => window.requestAnimationFrame(r));
+
+      const popup = new Popup({ closeButton: false })
+        .setLngLat([location!.lon, location!.lat])
+        .setHTML(preview.value!.innerHTML)
+        .setMaxWidth('none')
+        .addTo(map.value!)
+        .on('close', () => {
+          popupOpen.value = false;
+        });
+
+      popup
+        .getElement()
+        .querySelectorAll('a')
+        .forEach((el) =>
+          el.addEventListener('click', () => {
+            coursesStore.selectedCourse = courses.find(
+              (c) => c.id === el.dataset.course,
+            );
             popup.remove();
-          });
+          }),
+        );
 
-        popupOpen.value = true;
-      });
+      popupOpen.value = true;
+    });
 
-      markerEl.setAttribute('title', course.name);
+    const l = courses.length;
+    const firstName = events[0].course.name;
+    const title =
+      l === 1
+        ? firstName
+        : `„${firstName}” und ${l - 1} weitere${l - 1 === 1 ? 'r' : ''} Kurs${l - 1 === 1 ? '' : 'e'}`;
 
-      markers.set(slot.id, marker);
-    }
+    markerEl.setAttribute('title', title);
+
+    markers.set(location.url, marker);
   }
 };
 
 const updateMarkersDebounced = useDebounceFn(updateMarkers, duration);
 
 watch(highlightedCourse, () => updateHighlightedCourse());
-watch(paginatedCourses, () => updateMarkersDebounced());
+watch(matchingCourseEvents, () => updateMarkersDebounced());
 
 function slotsToBounds(slots: CourseSlot[]): LngLatBounds | undefined {
   const coords = slots
@@ -167,7 +193,7 @@ onMounted(() => {
       container: mapContainer.value!,
       style: `https://api.maptiler.com/maps/streets-v2${isDark.value ? '-dark' : ''}/style.json?key=${import.meta.env.VITE_MAPTILER_API_KEY}`,
       center: [13.405, 52.52],
-      zoom: 10,
+      zoom: 8,
     }),
   );
 
@@ -199,5 +225,13 @@ onUnmounted(() => {
 
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
   @apply dark:border-t-black;
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  @apply dark:border-r-black;
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  @apply dark:border-l-black;
 }
 </style>

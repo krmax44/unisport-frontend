@@ -17,3 +17,4 @@ import { timeToStr } from '../utils';
 
 defineProps<{ slot: CourseSlot }>();
 </script>
+../store/courses/courses

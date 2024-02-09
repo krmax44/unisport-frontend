@@ -8,11 +8,13 @@
     leave-class="ease-in"
   >
     <Panel
+      ref="root"
       tag="article"
       class="absolute inset-0 top-4 lg:top-0 lg:m-8 shadow-lg lg:shadow-2xl"
+      tabindex="-1"
       v-if="course !== undefined"
     >
-      <div
+      <FocusTrap
         class="border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 relative"
       >
         <header
@@ -151,13 +153,14 @@
             Zur Buchung
           </a>
         </div>
-      </div>
+      </FocusTrap>
     </Panel>
   </Transition>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import { FocusTrap } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 import { parse, Renderer } from 'marked';
 import DOMPurify from 'dompurify';
@@ -186,6 +189,11 @@ const descriptionClipped = computed(
 );
 
 watch(course, () => (descriptionExpanded.value = false));
+
+const root = ref(undefined as HTMLElement | undefined);
+onMounted(() => {
+  root.value?.querySelector<HTMLElement>(':focusable')?.focus();
+});
 </script>
 
 <style scoped>

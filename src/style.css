@@ -8,12 +8,17 @@ body {
 
 body,
 .prose {
+  --tw-prose-links: theme('colors.indigo.600');
   @apply text-black dark:bg-black dark:text-white;
 }
 
 @media (prefers-color-scheme: dark) {
   body {
     scrollbar-color: theme('colors.gray.500') theme('colors.gray.900');
+  }
+
+  .prose {
+    --tw-prose-links: theme('colors.indigo.400');
   }
 }
 

@@ -1,14 +1,14 @@
 <template>
   <a
     href="#!"
-    class="block group focus:outline-none focus:ring focus:ring-green-500 transition-all rounded shadow border"
+    class="block group transition-all outline-none"
     title="Details zum Kurs…"
     @click.prevent="coursesStore.selectedCourse = course"
   >
     <article
-      class="p-4 border-gray-300 group-hover:bg-green-50/50 dark:group-hover:bg-green-900/50 h-full space-y-2"
-      @mouseover="coursesStore.setHighlightedCourse(course)"
-      @mouseout="coursesStore.setHighlightedCourse(undefined)"
+      class="p-4 group-hover:bg-green-50/50 group-focus:bg-green-50/75 dark:group-hover:bg-green-900/25 dark:group-focus:bg-green-900/50 h-full space-y-2"
+      @mouseover="coursesStore.highlightedCourse = course"
+      @mouseout="coursesStore.highlightedCourse = undefined"
     >
       <h3 class="text-lg font-semibold">{{ course.name }}</h3>
       <dl>
@@ -31,7 +31,10 @@
         </template>
       </dl>
 
-      <ul class="flex gap-2 pt-2 overflow-auto md:flex-wrap snap-x">
+      <ul
+        class="flex gap-2 pt-2 overflow-auto md:flex-wrap snap-x"
+        v-if="showSlots !== false"
+      >
         <li
           v-for="slot in slots"
           :key="slot.id"
@@ -55,14 +58,15 @@
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { Course, useCourseStore, DAYS } from '../store/courses.ts';
-import { slotFitsFilter, timeToStr } from '../utils';
+import { Course, useCourseStore, DAYS } from '../store/courses/index.ts';
+import { slotFitsFilter, timeToStr, getPriceRange } from '../utils';
 import SlotTime from './SlotTime.vue';
 
 const coursesStore = useCourseStore();
 
 const props = defineProps<{
   course: Course;
+  showSlots?: boolean;
 }>();
 
 const slots = computed(() =>
@@ -76,7 +80,7 @@ const slots = computed(() =>
     .sort((s) => (s.bookable === 'bookable' ? -1 : 1)),
 );
 
-const priceRange = computed(() => coursesStore.getPriceRange(props.course));
+const priceRange = computed(() => getPriceRange(props.course));
 </script>
 
 <style scoped>

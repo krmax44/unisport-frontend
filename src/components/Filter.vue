@@ -2,7 +2,9 @@
   <div
     class="bg-white lg:border-b border-green-300 dark:bg-black dark:shadow-gray-700 space-y-2"
   >
-    <h1 class="mt-6 lg:mt-0 mb-2 text-green-800">Unisport in Berlin</h1>
+    <h1 class="mt-6 lg:mt-0 mb-2 text-green-800">
+      Unisport in Berlin und Potsdam
+    </h1>
     <h2 class="text-gray-700 dark:text-gray-300">
       <span class="font-semibold">
         {{ coursesStore.courses.length }} Kurse durchsuchen
@@ -59,7 +61,7 @@ import { ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { refDebounced } from '@vueuse/core';
 
-import { useCourseStore, DAYS } from '../store/courses.ts';
+import { useCourseStore, DAYS } from '../store/courses/index.ts';
 
 const coursesStore = useCourseStore();
 const { filters } = storeToRefs(coursesStore);

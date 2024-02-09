@@ -40,9 +40,23 @@
             :course="course"
             v-for="course in coursesStore.paginatedCourses"
             :id="course.id"
+            class="rounded shadow border border-gray-200 dark:border-gray-600"
+            @click.prevent="coursesStore.selectedCourse = course"
           />
         </template>
         <div class="" v-else>Keine passenden Kurse gefunden.</div>
+      </div>
+
+      <div class="pt-4 lg:p-8 sticky bottom-0 bg-white dark:bg-black">
+        <Pagination
+          :current-page="pagination.currentPage.value"
+          :page-count="pagination.pageCount.value"
+          :is-first-page="pagination.isFirstPage.value"
+          :is-last-page="pagination.isLastPage.value"
+          @prev="pagination.prev"
+          @next="pagination.next"
+          @to="(i) => (pagination.currentPage.value = i)"
+        />
       </div>
     </TabPanel>
 
@@ -50,23 +64,11 @@
       <Map class="min-h-48 h-full" />
     </TabPanel>
   </TabPanels>
-
-  <div class="pt-4 lg:p-8 lg:sticky bottom-0 bg-white dark:bg-black">
-    <Pagination
-      :current-page="pagination.currentPage.value"
-      :page-count="pagination.pageCount.value"
-      :is-first-page="pagination.isFirstPage.value"
-      :is-last-page="pagination.isLastPage.value"
-      @prev="pagination.prev"
-      @next="pagination.next"
-      @to="(i) => (pagination.currentPage.value = i)"
-    />
-  </div>
 </template>
 
 <script lang="ts" setup>
 import { TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue';
-import { useCourseStore } from '../store/courses.ts';
+import { useCourseStore } from '../store/courses/index.ts';
 import Filter from './Filter.vue';
 import Map from './Map.vue';
 import CoursePreview from './CoursePreview.vue';
