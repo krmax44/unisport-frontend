@@ -72,12 +72,17 @@ let preHighlightZoom: number | undefined;
 
 const updateHighlightedCourse = useDebounceFn(() => {
   markers.forEach((m) => m.setOpacity('1'));
+
   if (coursesStore.highlightedCourse !== undefined && shouldZoomIn.value) {
     const { slots } = coursesStore.highlightedCourse;
-    const slotIds = slots.map((s) => s.id);
+    const locationIds = slots
+      .map((s) => s.location?.url)
+      .filter((l) => l !== undefined);
 
-    if (slotIds.some((s) => markers.has(s))) {
-      markers.forEach((m, id) => !slotIds.includes(id) && m.setOpacity('0'));
+    if (locationIds.some((s) => markers.has(s!))) {
+      markers.forEach(
+        (m, id) => !locationIds.includes(id) && m.setOpacity('0'),
+      );
 
       const bounds = slotsToBounds(slots);
       if (bounds !== undefined) {
@@ -86,7 +91,14 @@ const updateHighlightedCourse = useDebounceFn(() => {
           preHighlightZoom = map.value?.getZoom();
         }
 
-        map.value?.fitBounds(bounds, { duration, zoom: 15 });
+        const canvas = map.value!.getCanvas();
+
+        const zoom = getBoundsZoomLevel(bounds, [
+          canvas.width / 2,
+          canvas.height / 2,
+        ]);
+
+        map.value?.fitBounds(bounds, { duration, zoom });
       }
 
       return;
@@ -206,6 +218,35 @@ onMounted(() => {
 onUnmounted(() => {
   map.value?.remove();
 });
+
+// cc-by-sa 3.0 https://stackoverflow.com/a/13274361
+function getBoundsZoomLevel(bounds: LngLatBounds, mapDim: [number, number]) {
+  const WORLD_DIM = { height: 256, width: 256 };
+  const ZOOM_MAX = 14;
+
+  const latRad = (lat: number) => {
+    const sin = Math.sin((lat * Math.PI) / 180);
+    const radX2 = Math.log((1 + sin) / (1 - sin)) / 2;
+    return Math.max(Math.min(radX2, Math.PI), -Math.PI) / 2;
+  };
+
+  const zoom = (mapPx: number, worldPx: number, fraction: number) => {
+    return Math.floor(Math.log(mapPx / worldPx / fraction) / Math.LN2);
+  };
+
+  const ne = bounds.getNorthEast();
+  const sw = bounds.getSouthWest();
+
+  const latFraction = (latRad(ne.lat) - latRad(sw.lat)) / Math.PI;
+
+  const lngDiff = ne.lng - sw.lng;
+  const lngFraction = (lngDiff < 0 ? lngDiff + 360 : lngDiff) / 360;
+
+  const latZoom = zoom(mapDim[1], WORLD_DIM.height, latFraction);
+  const lngZoom = zoom(mapDim[0], WORLD_DIM.width, lngFraction);
+
+  return Math.min(latZoom, lngZoom, ZOOM_MAX);
+}
 </script>
 
 <style>
