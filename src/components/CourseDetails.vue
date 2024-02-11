@@ -10,7 +10,7 @@
     <Panel
       ref="root"
       tag="article"
-      class="absolute inset-0 top-4 lg:top-0 lg:m-8 shadow-lg lg:shadow-2xl"
+      class="absolute inset-0 top-4 lg:top-0 lg:m-8 px-4 lg:px-8 shadow-lg lg:shadow-2xl"
       tabindex="-1"
       v-if="course !== undefined"
     >

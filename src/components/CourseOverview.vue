@@ -1,5 +1,5 @@
 <template>
-  <Filter class="pb-8 lg:p-8 lg:pt-12 lg:sticky top-0" />
+  <Filter class="px-4 lg:px-8 pb-8 lg:p-8 lg:pt-12 lg:sticky top-0" />
 
   <div class="lg:hidden">
     <TabList class="flex space-x-1 border-b border-green-300">
@@ -30,7 +30,9 @@
 
   <TabPanels class="flex-1">
     <TabPanel>
-      <div class="pt-4 lg:p-8 flex md:grid md:grid-cols-2 flex-col gap-4">
+      <div
+        class="px-4 lg:px-8 pt-4 lg:p-8 flex md:grid md:grid-cols-2 flex-col gap-4"
+      >
         <div v-if="coursesStore.error === true">
           Fehler beim Laden. Versuche es später erneut.
         </div>
@@ -56,6 +58,7 @@
           @prev="pagination.prev"
           @next="pagination.next"
           @to="(i) => (pagination.currentPage.value = i)"
+          class="px-4 lg:px-0"
         />
       </div>
     </TabPanel>
