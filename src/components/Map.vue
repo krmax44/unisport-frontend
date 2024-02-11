@@ -157,6 +157,10 @@ const updateMarkers = () => {
         .querySelectorAll('a')
         .forEach((el) =>
           el.addEventListener('click', () => {
+            try {
+              document.exitFullscreen();
+            } catch {}
+
             coursesStore.selectedCourse = courses.find(
               (c) => c.id === el.dataset.course,
             );
