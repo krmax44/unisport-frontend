@@ -45,13 +45,14 @@ import { usePreferredDark, useDebounceFn } from '@vueuse/core';
 import { useCourseStore, CourseSlot, Course } from '../store/courses/index.ts';
 import CoursePreview from './CoursePreview.vue';
 import { storeToRefs } from 'pinia';
+import { uniqueCourses } from '../utils';
 
 const isDark = usePreferredDark();
 
 const coursesStore = useCourseStore();
-const { matchingCourseEvents, highlightedCourse, selectedCourse } =
+const { filteredCourseEventsByLocation, highlightedCourse, selectedCourse } =
   storeToRefs(coursesStore);
-const locationKeys = computed(() => Object.keys(matchingCourseEvents.value));
+//const locationKeys = computed(() => Object.keys(matchingCourseEvents.value));
 
 const mapContainer = shallowRef(null);
 const map = shallowRef(null as MaplibreMap | null);
@@ -116,16 +117,15 @@ const updateHighlightedCourse = useDebounceFn(() => {
 
 const updateMarkers = () => {
   for (const [id, marker] of markers.entries()) {
-    if (!locationKeys.value.includes(id)) {
+    if (!(id in filteredCourseEventsByLocation)) {
       marker.remove();
       markers.delete(id);
     }
   }
 
-  for (const events of Object.values(matchingCourseEvents.value)) {
+  for (const events of Object.values(filteredCourseEventsByLocation.value)) {
     if (events.length === 0) continue;
     const { location } = events[0];
-    const courses = [...new Set(events.map((e) => e.course))];
 
     if (markers.has(location.url)) continue;
 
@@ -136,7 +136,10 @@ const updateMarkers = () => {
     const markerEl = marker.getElement();
 
     markerEl.addEventListener('click', async () => {
+      const events = coursesStore.filteredCourseEventsByLocation[location.url];
+      const courses = uniqueCourses(events);
       previewCourses.value = courses;
+
       await nextTick();
       await new Promise((r) => window.requestAnimationFrame(r));
 
@@ -164,6 +167,7 @@ const updateMarkers = () => {
       popupOpen.value = true;
     });
 
+    const courses = uniqueCourses(events);
     const l = courses.length;
     const firstName = events[0].course.name;
     const title =
@@ -177,10 +181,8 @@ const updateMarkers = () => {
   }
 };
 
-const updateMarkersDebounced = useDebounceFn(updateMarkers, duration);
-
 watch(highlightedCourse, () => updateHighlightedCourse());
-watch(matchingCourseEvents, () => updateMarkersDebounced());
+watch(filteredCourseEventsByLocation, () => updateMarkers());
 
 function slotsToBounds(slots: CourseSlot[]): LngLatBounds | undefined {
   const coords = slots

@@ -1,4 +1,5 @@
-import { Course, CourseSlot, Filters } from './store/courses';
+import { Course, CourseEvent, CourseSlot, Filters } from './store/courses';
+import { uniqBy } from 'lodash-es';
 
 export function strToTime(time: string): number {
   const [hours, minutes] = time.split(':').map(Number);
@@ -31,13 +32,20 @@ export function slotFitsFilter(slot: CourseSlot, filters: Filters): boolean {
   const start =
     filters.start === '' ||
     (slot.time?.start !== undefined &&
-      slot.time!.start >= strToTime(filters.start));
+      slot.time.start >= strToTime(filters.start));
 
   const end =
     filters.end === '' ||
     (slot.time?.end !== undefined &&
-      slot.time!.end <= strToTime(filters.end) &&
-      slot.time!.start <= strToTime(filters.end));
+      slot.time.end <= strToTime(filters.end) &&
+      slot.time.start <= strToTime(filters.end));
 
   return bookable && day && start && end;
+}
+
+export function uniqueCourses(events: CourseEvent[]) {
+  return uniqBy(
+    events.map((e) => e.course),
+    'id',
+  );
 }

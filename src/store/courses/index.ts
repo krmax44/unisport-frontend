@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia';
 import { UseOffsetPaginationReturn, useOffsetPagination } from '@vueuse/core';
 import type Fuse from 'fuse.js';
-import groupBy from 'lodash.groupby';
+import { groupBy } from 'lodash-es';
 
-import { slotFitsFilter } from '../../utils';
+import { slotFitsFilter, uniqueCourses } from '../../utils';
 import { loadCourses } from './loadCourses';
 
 export type BookingStatus = 'bookable' | 'waitlist';
@@ -110,42 +110,30 @@ export const useCourseStore = defineStore('courses', {
     },
   },
   getters: {
+    courseEvents(): CourseEvent[] {
+      return this.courses.flatMap((course) =>
+        course.slots.map((slot) => ({ course, slot, location: slot.location })),
+      );
+    },
     filteredCourseEvents(): CourseEvent[] {
       if (this.loaded === false || this.error === true) return [];
 
-      let { courses } = this;
+      let foundCourses: string[];
 
       if (this.filters.searchTerm.length > 2) {
-        courses = this.fuse!.search(this.filters.searchTerm).map((r) => r.item);
+        foundCourses = this.fuse!.search(this.filters.searchTerm).map(
+          (r) => r.item.id,
+        );
       }
 
-      const filterByBookable = this.filters.bookable.length !== 0;
-      const filterByTime =
-        this.filters.day !== 'all' ||
-        this.filters.start !== '' ||
-        this.filters.end !== '';
+      return this.courseEvents.filter((event) => {
+        if (foundCourses?.includes(event.course.id) === false) return false;
 
-      const events = [];
-
-      for (const course of courses) {
-        for (const slot of course.slots) {
-          if (
-            (filterByBookable || filterByTime) &&
-            !slotFitsFilter(slot, this.filters)
-          ) {
-            continue;
-          }
-
-          events.push({ course, slot, location: slot.location });
-        }
-      }
-
-      return events;
+        return slotFitsFilter(event.slot, this.filters);
+      });
     },
     filteredCourses(): Course[] {
-      return [
-        ...new Set(this.filteredCourseEvents.map((event) => event.course)),
-      ];
+      return uniqueCourses(this.filteredCourseEvents);
     },
     pagination(): UseOffsetPaginationReturn {
       return useOffsetPagination({
@@ -162,7 +150,7 @@ export const useCourseStore = defineStore('courses', {
         currentPage.value + currentPageSize.value,
       );
     },
-    matchingCourseEvents(): Record<string, Required<CourseEvent>[]> {
+    filteredCourseEventsByLocation(): Record<string, Required<CourseEvent>[]> {
       let eventsByLocation = groupBy(
         this.filteredCourseEvents,
         (event) => event.location?.url,
